@@ -126,6 +126,13 @@
     .button.secondary:hover { background: var(--blue-soft); }
     .button.danger { border-color: var(--red); background: var(--surface); color: var(--red); }
     .button:disabled { cursor: not-allowed; opacity: .58; }
+    .audio-player { margin-top: 1rem; }
+    .audio-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .55rem; }
+    .audio-controls .button { min-height: 3.25rem; font-size: .98rem; }
+    .audio-speed { display: flex; flex: 1 1 220px; align-items: center; gap: .55rem; }
+    .audio-speed label { flex: 0 0 auto; margin: 0; }
+    .audio-speed select { width: auto; min-width: 130px; }
+    .audio-status { min-height: 1.35rem; margin: .4rem 0 0; color: var(--muted); font-size: .84rem; }
     .section { margin-top: 1.6rem; }
     .section-intro { color: var(--muted); max-width: 68ch; }
     .steps, .card-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .8rem; }
@@ -349,6 +356,36 @@
   <script>
     'use strict';
 
+    // CẤU HÌNH ĐỌC THÀNH TIẾNG: thay file MP3 trong audio/ hoặc sửa phần text làm dự phòng.
+    const AUDIO_CONTENT = [
+      { id: 'chao-trang-chu', file: 'audio/chao-trang-chu.mp3', text: 'Xin chào. Đây là trang giúp bạn kiểm tra tin nhắn hoặc đường link đáng ngờ. Bạn hãy dán nội dung vào, rồi bấm nút kiểm tra.' },
+      { id: 'ket-qua-thap', file: 'audio/ket-qua-thap.mp3', text: 'Nguy cơ thấp. Mình chưa thấy dấu hiệu đáng ngờ rõ ràng. Tuy vậy, điều này chưa có nghĩa là hoàn toàn an toàn. Nếu có yêu cầu liên quan đến tiền hoặc thông tin cá nhân, bạn hãy xác minh qua kênh chính thức.' },
+      { id: 'ket-qua-can-than-trong', file: 'audio/ket-qua-can-than-trong.mp3', text: 'Cần thận trọng. Nội dung này có một số dấu hiệu đáng ngờ. Bạn chưa nên bấm vào đường link hay trả lời. Hãy hỏi người thân, hoặc gọi số điện thoại chính thức của nơi gửi tin để xác minh.' },
+      { id: 'ket-qua-cao', file: 'audio/ket-qua-cao.mp3', text: 'Nguy cơ cao. Nội dung này có nhiều dấu hiệu của lừa đảo. Bạn đừng bấm vào đường link, đừng cung cấp mã ô ti pi, và đừng chuyển tiền. Hãy dừng lại, và báo cho người thân hoặc cơ quan chức năng.' },
+      { id: 'dau-hieu-sensitive', file: 'audio/dau-hieu-otp.mp3', text: 'Nội dung này yêu cầu bạn cung cấp mã ô ti pi. Ngân hàng thật không bao giờ hỏi mã này qua tin nhắn hay điện thoại.' },
+      { id: 'dau-hieu-urgent-money', file: 'audio/dau-hieu-chuyen-tien-gap.mp3', text: 'Nội dung này thúc giục bạn chuyển tiền ngay. Kẻ lừa đảo thường tạo áp lực thời gian để bạn không kịp suy nghĩ.' },
+      { id: 'dau-hieu-threat', file: 'audio/dau-hieu-de-doa.mp3', text: 'Nội dung này dọa khóa tài khoản hoặc xử phạt. Đây là chiêu hay gặp để làm bạn lo sợ và làm theo.' },
+      { id: 'dau-hieu-impersonation', file: 'audio/dau-hieu-gia-danh.mp3', text: 'Tin nhắn tự nhận là ngân hàng hoặc cơ quan chưa chắc là thật. Hãy tự tìm số liên hệ chính thức.' },
+      { id: 'dau-hieu-prize', file: 'audio/dau-hieu-trung-thuong.mp3', text: 'Lời báo trúng thưởng hoặc hoàn tiền bất ngờ có thể là mồi nhử. Đừng trả phí để nhận quà.' },
+      { id: 'dau-hieu-easy-money', file: 'audio/dau-hieu-viec-nhe-luong-cao.mp3', text: 'Lời hứa việc nhẹ lương cao hoặc lợi nhuận chắc chắn cần được kiểm chứng. Hãy tìm hiểu đơn vị trước.' },
+      { id: 'dau-hieu-apk-control', file: 'audio/dau-hieu-cai-ung-dung.mp3', text: 'Đừng cài ứng dụng từ đường link lạ hoặc cấp quyền điều khiển thiết bị. Hãy nhờ người tin cậy kiểm tra.' },
+      { id: 'dau-hieu-urgent-link', file: 'audio/dau-hieu-link-gap.mp3', text: 'Đường link này trông khác thường, có thể là địa chỉ giả mạo. Bạn đừng bấm vào, hãy tự mở trang chính thức bằng cách gõ địa chỉ.' },
+      { id: 'dau-hieu-shortener', file: 'audio/dau-hieu-link-rut-gon.mp3', text: 'Link rút gọn có thể che địa chỉ trang đích. Đừng mở nếu bạn chưa biết rõ nguồn gửi.' },
+      { id: 'dau-hieu-odd-tld', file: 'audio/dau-hieu-duoi-ten-mien.mp3', text: 'Tên miền có đuôi lạ có thể xuất hiện trong trang giả mạo. Hãy tự nhập địa chỉ quen thuộc.' },
+      { id: 'dau-hieu-ip-host', file: 'audio/dau-hieu-dia-chi-so.mp3', text: 'Đường link dùng dãy số thay cho tên miền quen thuộc cần được kiểm tra. Đừng đăng nhập vào trang đó.' },
+      { id: 'dau-hieu-link-at-hyphen', file: 'audio/dau-hieu-ky-tu-bat-thuong.mp3', text: 'Địa chỉ có ký tự lạ, nhiều gạch ngang hoặc nhiều tầng tên miền rất khó nhận biết. Hãy tự tìm trang chính thức.' },
+      { id: 'dau-hieu-lookalike', file: 'audio/dau-hieu-gia-mao-thuong-hieu.mp3', text: 'Tên miền có thể giả thương hiệu bằng chữ hoặc số trông giống nhau. Hãy kiểm tra từng ký tự.' },
+      { id: 'dau-hieu-no-https', file: 'audio/dau-hieu-thieu-bao-mat.mp3', text: 'Đường link không có hát tê tê pê ét chưa chắc là lừa đảo, nhưng cần thận trọng. Đừng nhập thông tin riêng tư.' },
+      { id: 'dau-hieu-long-link', file: 'audio/dau-hieu-link-dai.mp3', text: 'Link dài bất thường có thể che địa chỉ thật hoặc dẫn qua nhiều trang. Hãy tự tìm trang cần truy cập.' },
+      { id: 'loi-khuyen-thap', file: 'audio/loi-khuyen-thap.mp3', text: 'Chưa phát hiện dấu hiệu rõ, nhưng điều này không bảo đảm nội dung an toàn. Đừng chia sẻ mã ô-ti-pi, mật khẩu hay thông tin thẻ. Nếu liên quan tiền hoặc tài khoản, hãy xác minh qua kênh chính thức.' },
+      { id: 'loi-khuyen-can-than-trong', file: 'audio/loi-khuyen-can-than-trong.mp3', text: 'Chưa cung cấp thông tin hoặc thanh toán cho đến khi kiểm tra xong. Tự mở ứng dụng hoặc nhập địa chỉ chính thức thay vì dùng link trong tin nhắn. Nếu còn băn khoăn, hãy nhờ người bạn tin tưởng cùng xem.' },
+      { id: 'loi-khuyen-cao', file: 'audio/loi-khuyen-cao.mp3', text: 'Dừng lại. Không nhấn link, không chuyển tiền và không gửi mã ô-ti-pi hay mật khẩu. Tự gọi ngân hàng hoặc tổ chức liên quan bằng số trên thẻ hoặc trong ứng dụng chính thức. Nếu đã chuyển tiền, liên hệ ngân hàng ngay và báo người thân.' },
+      { id: 'nhac-xac-minh', file: 'audio/nhac-xac-minh.mp3', text: 'Xin nhớ, kết quả chỉ hỗ trợ đánh giá nguy cơ, không thay thế xác minh qua kênh chính thức. Hãy tự mở ứng dụng hoặc gọi số chính thức trước khi làm theo.' }
+    ];
+    const AUDIO_CONTENT_BY_ID = new Map(AUDIO_CONTENT.map(item => [item.id, item]));
+    const AUDIO_SPEEDS = { slow: 0.84, medium: 0.96, fast: 1.12 };
+    let activeReadback = null;
+
     // MẢNG QUY TẮC: nhóm có thể sửa từ khóa và điểm ở đây.
     // Những từ khóa được chuẩn hóa bỏ dấu để hỗ trợ tiếng Việt không dấu.
     const RULES = [
@@ -428,6 +465,7 @@
     function goTo(pageName) {
       const target = document.getElementById(`page-${pageName}`);
       if (!target) return;
+      stopReadback('Đã dừng đọc khi chuyển trang.');
       $$('.page').forEach(page => page.classList.toggle('active', page === target));
       $$('.nav-link').forEach(link => {
         if (link.dataset.page === pageName) link.setAttribute('aria-current', 'page');
@@ -522,6 +560,7 @@
     }
 
     function renderResult(result) {
+      stopReadback('');
       resultArea.replaceChildren();
       const labels = { low: ['🟢', 'Nguy cơ thấp', 'low'], caution: ['🟡', 'Cần thận trọng', 'caution'], high: ['🔴', 'Nguy cơ cao', 'high'] };
       const [icon, label, style] = labels[result.level];
@@ -547,27 +586,240 @@
       const advice = document.createElement('ul'); advice.className = 'result-list';
       recommendations(result.level).forEach(item => addText(advice, 'li', item));
       actions.appendChild(advice); columns.append(signs, actions); card.appendChild(columns);
+      appendReadbackControls(card, result);
       const tools = document.createElement('div'); tools.className = 'button-row';
-      if ('speechSynthesis' in window && 'SpeechSynthesisUtterance' in window) {
-        const listen = document.createElement('button'); listen.type = 'button'; listen.className = 'button secondary'; listen.textContent = '🔊 Nghe kết quả';
-        listen.addEventListener('click', () => speakResult(label, result)); tools.appendChild(listen);
-      }
       const repeat = document.createElement('button'); repeat.type = 'button'; repeat.className = 'button secondary'; repeat.textContent = 'Kiểm tra nội dung khác'; repeat.addEventListener('click', () => { $('#check-input').focus(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
       tools.appendChild(repeat); card.appendChild(tools);
       addText(card, 'p', 'Kết quả chỉ hỗ trợ đánh giá nguy cơ, không đảm bảo phát hiện mọi hình thức lừa đảo.', 'help-text');
       resultArea.appendChild(card);
     }
 
-    function speakResult(label, result) {
-      const text = `${label}. Điểm tham khảo ${result.score} trên 100. ` +
-        (result.findings.length ? result.findings.map(item => item.reason).join(' ') : 'Chưa phát hiện dấu hiệu rõ trong danh sách mẫu.') +
-        ' Hãy xác minh qua kênh chính thức. Kết quả không đảm bảo phát hiện mọi hình thức lừa đảo.';
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'vi-VN';
+    // Kiểm tra xem trình duyệt có hỗ trợ MP3 và Web Speech API hay không.
+    function supportsMp3Playback() {
+      try { return typeof Audio !== 'undefined' && Boolean(new Audio().canPlayType('audio/mpeg')); }
+      catch (_) { return false; }
+    }
+
+    function supportsWebSpeech() {
+      return 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+    }
+
+    // Giữ cách chọn giọng như bản cũ: dùng giọng tiếng Việt đầu tiên trình duyệt cung cấp.
+    function getBestVietnameseVoice() {
+      if (!supportsWebSpeech()) return null;
       const voices = window.speechSynthesis.getVoices();
-      const vietnamese = voices.find(voice => voice.lang.toLowerCase().startsWith('vi'));
-      if (vietnamese) utterance.voice = vietnamese;
-      window.speechSynthesis.cancel(); window.speechSynthesis.speak(utterance);
+      return voices.find(voice => /^vi(?:-|$)/i.test(voice.lang || '')) || null;
+    }
+
+    // Chờ danh sách giọng tải xong; nếu trình duyệt không gửi sự kiện thì tiếp tục sau một nhịp ngắn.
+    function waitForVietnameseVoice() {
+      const current = getBestVietnameseVoice();
+      if (current || !supportsWebSpeech()) return Promise.resolve(current);
+      return new Promise(resolve => {
+        const synth = window.speechSynthesis;
+        const finish = () => {
+          clearTimeout(timer);
+          synth.removeEventListener('voiceschanged', finish);
+          resolve(getBestVietnameseVoice());
+        };
+        const timer = setTimeout(finish, 1200);
+        synth.addEventListener('voiceschanged', finish, { once: true });
+      });
+    }
+
+    // Tạo hàng đợi cố định: mức rủi ro, từng dấu hiệu, lời khuyên và câu nhắc cuối.
+    function buildReadbackQueue(result) {
+      const openingId = { low: 'ket-qua-thap', caution: 'ket-qua-can-than-trong', high: 'ket-qua-cao' }[result.level];
+      const adviceId = { low: 'loi-khuyen-thap', caution: 'loi-khuyen-can-than-trong', high: 'loi-khuyen-cao' }[result.level];
+      return [
+        AUDIO_CONTENT_BY_ID.get(openingId),
+        ...result.findings.map(finding => AUDIO_CONTENT_BY_ID.get(`dau-hieu-${finding.id}`)).filter(Boolean),
+        AUDIO_CONTENT_BY_ID.get(adviceId),
+        AUDIO_CONTENT_BY_ID.get('nhac-xac-minh')
+      ].filter(Boolean);
+    }
+
+    function updateReadbackButtons(session, mode) {
+      session.playButton.disabled = mode === 'playing';
+      session.playButton.textContent = mode === 'paused' ? '▶ Tiếp tục' : mode === 'finished' ? '🔊 Nghe lại kết quả' : '🔊 Nghe kết quả';
+      session.playButton.setAttribute('aria-label', mode === 'paused' ? 'Tiếp tục đọc kết quả' : mode === 'finished' ? 'Nghe lại kết quả' : 'Nghe kết quả');
+      session.pauseButton.disabled = mode !== 'playing';
+      session.stopButton.disabled = mode !== 'playing' && mode !== 'paused';
+    }
+
+    // Thêm nút có thể thao tác bằng chuột hoặc bàn phím, cùng lựa chọn tốc độ đọc.
+    function appendReadbackControls(card, result) {
+      const audioAvailable = supportsMp3Playback();
+      const speechAvailable = supportsWebSpeech();
+      if (!audioAvailable && !speechAvailable) {
+        addText(card, 'p', 'Thiết bị này chưa hỗ trợ đọc thành tiếng.', 'help-text');
+        return;
+      }
+
+      const player = document.createElement('div'); player.className = 'audio-player';
+      const controls = document.createElement('div'); controls.className = 'audio-controls'; controls.setAttribute('role', 'group'); controls.setAttribute('aria-label', 'Điều khiển đọc kết quả');
+      const playButton = document.createElement('button'); playButton.type = 'button'; playButton.className = 'button'; playButton.textContent = '🔊 Nghe kết quả'; playButton.setAttribute('aria-label', 'Nghe kết quả');
+      const pauseButton = document.createElement('button'); pauseButton.type = 'button'; pauseButton.className = 'button secondary'; pauseButton.textContent = '⏸ Tạm dừng'; pauseButton.setAttribute('aria-label', 'Tạm dừng đọc kết quả'); pauseButton.disabled = true;
+      const stopButton = document.createElement('button'); stopButton.type = 'button'; stopButton.className = 'button danger'; stopButton.textContent = '⏹ Dừng'; stopButton.setAttribute('aria-label', 'Dừng đọc kết quả'); stopButton.disabled = true;
+      const speedWrap = document.createElement('div'); speedWrap.className = 'audio-speed';
+      const speedId = 'audio-speed-select';
+      const speedLabel = document.createElement('label'); speedLabel.htmlFor = speedId; speedLabel.textContent = 'Tốc độ đọc';
+      const speedSelect = document.createElement('select'); speedSelect.id = speedId; speedSelect.setAttribute('aria-label', 'Chọn tốc độ đọc');
+      [['slow', 'Chậm'], ['medium', 'Vừa'], ['fast', 'Nhanh']].forEach(([value, label]) => {
+        const option = document.createElement('option'); option.value = value; option.textContent = label; speedSelect.appendChild(option);
+      });
+      speedSelect.value = 'slow';
+      speedWrap.append(speedLabel, speedSelect);
+      const status = document.createElement('p'); status.className = 'audio-status'; status.setAttribute('role', 'status'); status.setAttribute('aria-live', 'polite');
+      const unavailable = addText(player, 'p', 'Thiết bị này chưa hỗ trợ đọc thành tiếng.', 'help-text'); unavailable.hidden = true;
+      controls.append(playButton, pauseButton, stopButton, speedWrap);
+      player.insertBefore(controls, unavailable); player.appendChild(status); card.appendChild(player);
+
+      playButton.addEventListener('click', () => {
+        if (activeReadback && activeReadback.paused) { resumeReadback(activeReadback); return; }
+        if (!activeReadback) startReadback(result, { controls, unavailable, status, playButton, pauseButton, stopButton, speedSelect });
+      });
+      pauseButton.addEventListener('click', () => pauseReadback(activeReadback));
+      stopButton.addEventListener('click', () => stopReadback('Đã dừng đọc.', true));
+    }
+
+    function selectedPlaybackRate(session) {
+      return AUDIO_SPEEDS[session.speedSelect.value] || AUDIO_SPEEDS.slow;
+    }
+
+    function waitUntilReadbackResumed(session) {
+      if (!session.paused || session.stopped) return Promise.resolve();
+      return new Promise(resolve => { session.resumeWaiter = resolve; });
+    }
+
+    // Phát một file MP3; mọi lỗi tải, giải mã hoặc quyền phát đều chuyển sang văn bản dự phòng.
+    function tryPlayMp3(item, session) {
+      if (!supportsMp3Playback()) return Promise.resolve('fallback');
+      return new Promise(resolve => {
+        let settled = false;
+        let audio;
+        const finish = outcome => {
+          if (settled) return;
+          settled = true;
+          if (audio) {
+            audio.removeEventListener('ended', onEnded);
+            audio.removeEventListener('error', onError);
+            if (outcome !== 'played') audio.pause();
+          }
+          session.audio = null; session.cancelSegment = null; session.failSegment = null;
+          resolve(outcome);
+        };
+        const onEnded = () => finish('played');
+        const onError = () => finish('fallback');
+        try {
+          audio = new Audio(item.file);
+          audio.preload = 'auto'; audio.playbackRate = selectedPlaybackRate(session);
+          session.audio = audio;
+          session.cancelSegment = () => finish('stopped');
+          session.failSegment = () => finish('fallback');
+          audio.addEventListener('ended', onEnded, { once: true });
+          audio.addEventListener('error', onError, { once: true });
+          const playPromise = audio.play();
+          if (playPromise && typeof playPromise.catch === 'function') playPromise.catch(onError);
+        } catch (_) { finish('fallback'); }
+      });
+    }
+
+    // Đọc văn bản cố định bằng giọng Việt nếu MP3 không phát được.
+    async function speakWithWebSpeech(item, session) {
+      if (!supportsWebSpeech()) return 'unavailable';
+      const voice = await waitForVietnameseVoice();
+      await waitUntilReadbackResumed(session);
+      if (session.stopped) return 'stopped';
+      const synth = window.speechSynthesis;
+      return new Promise(resolve => {
+        let settled = false;
+        const finish = outcome => {
+          if (settled) return;
+          settled = true;
+          session.utterance = null; session.cancelSegment = null; session.failSegment = null;
+          resolve(outcome);
+        };
+        const utterance = new SpeechSynthesisUtterance(item.text);
+        utterance.lang = 'vi-VN'; utterance.rate = selectedPlaybackRate(session); utterance.pitch = 1; utterance.volume = 1;
+        if (voice) utterance.voice = voice;
+        utterance.onend = () => finish('played');
+        utterance.onerror = () => finish('unavailable');
+        session.utterance = utterance;
+        session.cancelSegment = () => { synth.cancel(); finish('stopped'); };
+        session.failSegment = () => finish('unavailable');
+        try { synth.speak(utterance); } catch (_) { finish('unavailable'); }
+      });
+    }
+
+    // Phát MP3 trước, rồi tự chuyển sang Web Speech nếu file không dùng được.
+    async function playReadbackItem(item, session) {
+      let outcome = await tryPlayMp3(item, session);
+      if (session.stopped || outcome === 'stopped') return 'stopped';
+      if (outcome === 'fallback') outcome = await speakWithWebSpeech(item, session);
+      return outcome;
+    }
+
+    // Chạy hàng đợi chỉ sau thao tác chủ động của người dùng.
+    async function runReadbackQueue(session) {
+      for (let index = session.index; index < session.queue.length; index += 1) {
+        if (session.stopped) break;
+        session.index = index;
+        session.status.textContent = `Đang đọc nội dung ${index + 1} trên ${session.queue.length}.`;
+        const outcome = await playReadbackItem(session.queue[index], session);
+        if (session.stopped || outcome === 'stopped') break;
+        if (outcome === 'unavailable') {
+          session.controls.hidden = true; session.unavailable.hidden = false;
+          session.status.textContent = '';
+          activeReadback = null;
+          return;
+        }
+      }
+      if (activeReadback === session && !session.stopped) {
+        activeReadback = null;
+        session.status.textContent = 'Đã đọc xong kết quả.';
+        updateReadbackButtons(session, 'finished');
+      }
+    }
+
+    function startReadback(result, controls) {
+      const session = { ...controls, queue: buildReadbackQueue(result), index: 0, paused: false, stopped: false, audio: null, utterance: null, cancelSegment: null, failSegment: null };
+      activeReadback = session;
+      updateReadbackButtons(session, 'playing');
+      void runReadbackQueue(session);
+    }
+
+    function pauseReadback(session) {
+      if (!session || session.stopped || session.paused) return;
+      session.paused = true;
+      if (session.audio) session.audio.pause();
+      if (supportsWebSpeech() && window.speechSynthesis.speaking) window.speechSynthesis.pause();
+      session.status.textContent = 'Đã tạm dừng.';
+      updateReadbackButtons(session, 'paused');
+    }
+
+    function resumeReadback(session) {
+      if (!session || session.stopped || !session.paused) return;
+      session.paused = false;
+      if (session.resumeWaiter) { session.resumeWaiter(); session.resumeWaiter = null; }
+      if (session.audio && session.audio.paused) session.audio.play().catch(() => { if (session.failSegment) session.failSegment(); });
+      if (supportsWebSpeech() && window.speechSynthesis.paused) window.speechSynthesis.resume();
+      session.status.textContent = 'Đang tiếp tục đọc.';
+      updateReadbackButtons(session, 'playing');
+    }
+
+    // Dừng cả MP3 lẫn giọng đọc trình duyệt, ví dụ khi người dùng chuyển trang.
+    function stopReadback(message = '', announce = false) {
+      const session = activeReadback;
+      if (!session) return;
+      session.stopped = true;
+      if (session.resumeWaiter) { session.resumeWaiter(); session.resumeWaiter = null; }
+      if (session.cancelSegment) session.cancelSegment();
+      if (session.audio) { session.audio.pause(); session.audio.currentTime = 0; }
+      if (supportsWebSpeech()) window.speechSynthesis.cancel();
+      activeReadback = null;
+      if (announce) session.status.textContent = message;
+      updateReadbackButtons(session, 'stopped');
     }
 
     function fillCategorySelect(select) {
