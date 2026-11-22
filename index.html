@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f8fb">
+  <meta name="description" content="Website demo giúp nhận biết dấu hiệu lừa đảo trực tuyến và tìm cách xử lý an toàn.">
+  <title>Phần mềm phòng chống lừa đảo</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f8fb;
+      --surface: #ffffff;
+      --surface-soft: #eaf2f7;
+      --ink: #122b3a;
+      --muted: #496273;
+      --line: #cbd9e2;
+      --blue: #135d82;
+      --blue-dark: #0a405f;
+      --blue-soft: #dceef7;
+      --green: #17613f;
+      --green-soft: #e4f4eb;
+      --amber: #754900;
+      --amber-soft: #fff2d5;
+      --red: #8a2630;
+      --red-soft: #fde9e9;
+      --shadow: 0 8px 26px rgba(20, 52, 69, .08);
+      --base-font: 18px;
+    }
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #10202a;
+      --surface: #182e3a;
+      --surface-soft: #213b49;
+      --ink: #f0f7fa;
+      --muted: #c0d1db;
+      --line: #3b5969;
+      --blue: #84c8eb;
+      --blue-dark: #b5e3f8;
+      --blue-soft: #24495d;
+      --green: #9fe0bb;
+      --green-soft: #203e31;
+      --amber: #ffda8a;
+      --amber-soft: #493b20;
+      --red: #ffabb0;
+      --red-soft: #4a282c;
+      --shadow: 0 8px 26px rgba(0, 0, 0, .18);
+    }
+    * { box-sizing: border-box; }
+    html { font-size: var(--base-font); scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.55;
+    }
+    a { color: var(--blue); }
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+    :focus-visible { outline: 3px solid #e09a22; outline-offset: 3px; }
+    .skip-link {
+      position: absolute; left: 1rem; top: -5rem; z-index: 20;
+      padding: .7rem 1rem; background: var(--surface); color: var(--ink); border-radius: .6rem;
+    }
+    .skip-link:focus { top: .6rem; }
+    .site-header {
+      position: sticky; top: 0; z-index: 10; background: var(--surface);
+      border-bottom: 1px solid var(--line); box-shadow: 0 2px 12px rgba(20, 52, 69, .05);
+    }
+    .header-inner, .main, .footer-inner { width: min(1120px, 100% - 2rem); margin: 0 auto; }
+    .header-inner { padding: .8rem 0 .55rem; }
+    .brand-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+    .brand { display: flex; align-items: center; gap: .7rem; min-width: 0; color: var(--ink); text-decoration: none; }
+    .brand-mark {
+      display: grid; place-items: center; width: 2.55rem; height: 2.55rem; flex: 0 0 auto;
+      border-radius: .8rem; background: var(--blue-soft); color: var(--blue-dark); font-size: 1.35rem; font-weight: 800;
+    }
+    .brand-title { margin: 0; font-size: 1rem; line-height: 1.2; font-weight: 800; }
+    .brand-subtitle { display: block; margin-top: .16rem; color: var(--muted); font-size: .72rem; font-weight: 400; }
+    .tools { display: flex; align-items: center; gap: .35rem; }
+    .icon-button, .small-button {
+      min-width: 2.55rem; min-height: 2.55rem; border: 1px solid var(--line); border-radius: .65rem;
+      background: var(--surface); color: var(--ink); font-weight: 700;
+    }
+    .icon-button:hover, .small-button:hover { background: var(--surface-soft); }
+    .primary-nav {
+      display: flex; gap: .35rem; overflow-x: auto; padding: .65rem 0 .05rem;
+      scrollbar-width: thin; -webkit-overflow-scrolling: touch;
+    }
+    .nav-link {
+      flex: 0 0 auto; border: 0; border-radius: 999px; padding: .48rem .82rem;
+      background: transparent; color: var(--muted); font-size: .82rem; font-weight: 700;
+    }
+    .nav-link[aria-current="page"] { background: var(--blue-soft); color: var(--blue-dark); }
+    .main { min-height: 65vh; padding: 1.4rem 0 2.5rem; }
+    .page { display: none; animation: enter .18s ease-out; }
+    .page.active { display: block; }
+    @keyframes enter { from { opacity: .55; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+    .hero {
+      display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(250px, .8fr); gap: 1.3rem;
+      align-items: center; padding: clamp(1.2rem, 4vw, 2.8rem); border-radius: 1.35rem;
+      background: linear-gradient(135deg, var(--surface) 15%, var(--blue-soft)); box-shadow: var(--shadow);
+    }
+    .eyebrow { margin: 0 0 .45rem; color: var(--blue-dark); font-size: .75rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    h1, h2, h3 { line-height: 1.23; }
+    h1 { max-width: 17ch; margin: 0 0 .7rem; font-size: clamp(1.65rem, 5vw, 2.6rem); }
+    h2 { margin: 0 0 .65rem; font-size: clamp(1.3rem, 4vw, 1.8rem); }
+    h3 { margin: 0 0 .4rem; font-size: 1.05rem; }
+    p { margin: 0 0 .8rem; }
+    .lead { max-width: 58ch; color: var(--muted); font-size: 1.05rem; }
+    .hero-art { display: grid; place-items: center; min-height: 210px; color: var(--blue-dark); }
+    .shield-illustration {
+      display: grid; place-items: center; width: min(210px, 52vw); aspect-ratio: 1;
+      border: 1px solid var(--line); border-radius: 35% 35% 42% 42%; background: var(--surface);
+      box-shadow: var(--shadow); font-size: clamp(5rem, 16vw, 8rem);
+    }
+    .button-row { display: flex; flex-wrap: wrap; gap: .65rem; align-items: center; margin-top: 1rem; }
+    .button {
+      display: inline-flex; align-items: center; justify-content: center; gap: .45rem;
+      min-height: 3rem; border: 2px solid transparent; border-radius: .8rem; padding: .68rem 1rem;
+      background: var(--blue); color: #fff; font-weight: 800; text-decoration: none; text-align: center;
+    }
+    .button:hover { background: var(--blue-dark); color: #fff; }
+    .button.secondary { border-color: var(--blue); background: var(--surface); color: var(--blue-dark); }
+    .button.secondary:hover { background: var(--blue-soft); }
+    .button.danger { border-color: var(--red); background: var(--surface); color: var(--red); }
+    .button:disabled { cursor: not-allowed; opacity: .58; }
+    .section { margin-top: 1.6rem; }
+    .section-intro { color: var(--muted); max-width: 68ch; }
+    .steps, .card-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .8rem; }
+    .step, .card, .panel, .tip, .scam-card {
+      border: 1px solid var(--line); border-radius: 1rem; background: var(--surface); box-shadow: var(--shadow);
+    }
+    .step { padding: 1rem; }
+    .step-number { display: grid; place-items: center; width: 2.25rem; height: 2.25rem; margin-bottom: .7rem; border-radius: 50%; background: var(--blue-soft); color: var(--blue-dark); font-weight: 800; }
+    .card { display: flex; flex-direction: column; padding: 1rem; }
+    .card p { color: var(--muted); }
+    .panel { max-width: 850px; margin: 0 auto; padding: clamp(1rem, 3.5vw, 1.7rem); }
+    .page-heading { margin-bottom: 1rem; }
+    .page-heading p { color: var(--muted); max-width: 68ch; }
+    .notice {
+      margin: .8rem 0; padding: .75rem .9rem; border-left: 4px solid var(--blue);
+      border-radius: .4rem; background: var(--blue-soft); color: var(--ink); font-size: .9rem;
+    }
+    .notice.warning { border-color: var(--amber); background: var(--amber-soft); }
+    .notice.danger { border-color: var(--red); background: var(--red-soft); }
+    label { display: block; margin: .6rem 0 .35rem; font-weight: 800; }
+    .help-text { color: var(--muted); font-size: .82rem; }
+    textarea, input[type="text"], select {
+      width: 100%; min-height: 3rem; border: 2px solid var(--line); border-radius: .7rem;
+      padding: .7rem .8rem; background: var(--surface); color: var(--ink);
+    }
+    textarea { min-height: 180px; resize: vertical; }
+    textarea:focus, input:focus, select:focus { border-color: var(--blue); }
+    .examples { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: .75rem; }
+    .small-button { padding: .45rem .7rem; font-size: .78rem; }
+    .status-message { min-height: 1.5rem; margin-top: .4rem; color: var(--muted); font-size: .86rem; }
+    .result-shell { max-width: 850px; margin: 1rem auto 0; }
+    .risk-card { padding: 1.2rem; border: 2px solid var(--line); border-radius: 1rem; background: var(--surface); }
+    .risk-card.low { border-color: var(--green); background: var(--green-soft); }
+    .risk-card.caution { border-color: var(--amber); background: var(--amber-soft); }
+    .risk-card.high { border-color: var(--red); background: var(--red-soft); }
+    .risk-top { display: flex; align-items: center; gap: .8rem; }
+    .risk-icon { display: grid; place-items: center; width: 3rem; height: 3rem; flex: 0 0 auto; border-radius: 50%; background: var(--surface); font-size: 1.55rem; }
+    .risk-title { margin: 0; font-size: 1.3rem; }
+    .score { margin: .15rem 0 0; font-size: .85rem; }
+    .result-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem; }
+    .result-list { margin: .4rem 0 0; padding-left: 1.25rem; }
+    .result-list li { margin: .45rem 0; }
+    .empty-state { padding: .8rem; border: 1px dashed var(--line); border-radius: .7rem; color: var(--muted); }
+    .filters { display: grid; grid-template-columns: minmax(0, 1fr) minmax(190px, .55fr); gap: .65rem; margin: 1rem 0; }
+    .scam-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+    .scam-card { padding: 1rem; }
+    .tag { display: inline-flex; margin: 0 0 .45rem; padding: .15rem .55rem; border-radius: 999px; background: var(--blue-soft); color: var(--blue-dark); font-size: .72rem; font-weight: 800; }
+    .scam-card p { margin: .35rem 0; color: var(--muted); font-size: .88rem; }
+    .tip-list { display: grid; gap: .55rem; }
+    .tip { overflow: clip; }
+    .tip summary { cursor: pointer; padding: .9rem 1rem; font-weight: 800; }
+    .tip summary::marker { color: var(--blue); }
+    .tip-content { padding: 0 1rem 1rem; color: var(--muted); }
+    .tip-content ul { margin: .25rem 0 0; padding-left: 1.2rem; }
+    .form-grid { display: grid; gap: .55rem; }
+    .success { padding: .8rem; border-radius: .7rem; background: var(--green-soft); color: var(--green); font-weight: 700; }
+    .error { color: var(--red); font-weight: 700; }
+    .source-list { padding-left: 1.2rem; overflow-wrap: anywhere; }
+    .source-list li { margin: .4rem 0; }
+    .admin-banner { margin-bottom: 1rem; padding: .75rem; border: 2px dashed var(--amber); border-radius: .7rem; background: var(--amber-soft); }
+    .admin-table { width: 100%; border-collapse: collapse; margin-top: .65rem; }
+    .admin-table th, .admin-table td { padding: .6rem; border: 1px solid var(--line); text-align: left; vertical-align: top; }
+    .admin-table th { background: var(--surface-soft); }
+    .footer { border-top: 1px solid var(--line); background: var(--surface); }
+    .footer-inner { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem; padding: 1rem 0; color: var(--muted); font-size: .8rem; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    @media (max-width: 720px) {
+      .header-inner, .main, .footer-inner { width: min(100% - 1rem, 1120px); }
+      .hero { grid-template-columns: 1fr; }
+      .hero-art { min-height: 140px; }
+      .shield-illustration { width: 130px; font-size: 4.8rem; }
+      .steps, .card-grid { grid-template-columns: 1fr; }
+      .scam-list { grid-template-columns: 1fr; }
+      .filters { grid-template-columns: 1fr; }
+      .result-columns { grid-template-columns: 1fr; }
+      .admin-table { display: block; overflow-x: auto; white-space: normal; }
+    }
+    @media (max-width: 390px) {
+      .header-inner, .main, .footer-inner { width: min(100% - .75rem, 1120px); }
+      .brand-subtitle { display: none; }
+      .brand-title { font-size: .9rem; }
+      .tools { gap: .2rem; }
+      .icon-button { min-width: 2.2rem; min-height: 2.2rem; padding: .25rem; }
+      .nav-link { padding: .45rem .65rem; font-size: .76rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Bỏ qua điều hướng</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand-row">
+        <a class="brand" href="#home" aria-label="Về trang chủ">
+          <span class="brand-mark" aria-hidden="true">✓</span>
+          <span><span class="brand-title">Phần mềm phòng chống lừa đảo</span><span class="brand-subtitle">Công cụ demo nhận biết dấu hiệu lừa đảo</span></span>
+        </a>
+        <div class="tools" aria-label="Tùy chỉnh giao diện">
+          <button class="icon-button" id="font-down" type="button" aria-label="Giảm cỡ chữ" title="Giảm cỡ chữ">A−</button>
+          <button class="icon-button" id="font-up" type="button" aria-label="Tăng cỡ chữ" title="Tăng cỡ chữ">A+</button>
+          <button class="icon-button" id="theme-toggle" type="button" aria-label="Bật chế độ tối" title="Đổi sáng tối">◐</button>
+        </div>
+      </div>
+      <nav class="primary-nav" aria-label="Điều hướng chính">
+        <button class="nav-link" data-page="home" aria-current="page">Trang chủ</button>
+        <button class="nav-link" data-page="check">Kiểm tra</button>
+        <button class="nav-link" data-page="alerts">Cảnh báo</button>
+        <button class="nav-link" data-page="guide">Hướng dẫn</button>
+        <button class="nav-link" data-page="report">Báo cáo</button>
+        <button class="nav-link" data-page="about">Giới thiệu</button>
+        <button class="nav-link" data-page="admin">Quản trị demo</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main" id="main" tabindex="-1">
+    <section class="page active" id="page-home" aria-labelledby="home-title">
+      <div class="hero">
+        <div>
+          <p class="eyebrow">Bình tĩnh · Kiểm tra · Xác minh</p>
+          <h1 id="home-title">Dừng lại một chút trước khi bấm vào điều đáng ngờ</h1>
+          <p class="lead">Dán tin nhắn hoặc đường link để xem các dấu hiệu rủi ro thường gặp và cách xử lý tiếp theo. Nội dung được kiểm tra ngay trên thiết bị của bạn.</p>
+          <div class="button-row">
+            <button class="button" type="button" data-go="check">Kiểm tra nội dung <span aria-hidden="true">→</span></button>
+            <button class="button secondary" type="button" data-go="guide">Xem hướng dẫn an toàn</button>
+          </div>
+        </div>
+        <div class="hero-art" aria-hidden="true"><div class="shield-illustration">🛡️</div></div>
+      </div>
+      <section class="section" aria-labelledby="how-title">
+        <h2 id="how-title">Chỉ cần 3 bước</h2>
+        <div class="steps">
+          <article class="step"><span class="step-number">1</span><h3>Dán nội dung</h3><p>Chép tin nhắn hoặc link bạn đang phân vân.</p></article>
+          <article class="step"><span class="step-number">2</span><h3>Bấm kiểm tra</h3><p>Công cụ tìm một số dấu hiệu đáng ngờ phổ biến.</p></article>
+          <article class="step"><span class="step-number">3</span><h3>Xem cách xử lý</h3><p>Đọc lý do cảnh báo và xác minh qua kênh chính thức.</p></article>
+        </div>
+      </section>
+      <div class="notice warning section"><strong>Hãy nhớ:</strong> kết quả thấp không có nghĩa là nội dung chắc chắn an toàn. Nếu liên quan đến tiền hoặc tài khoản, hãy tự liên hệ tổ chức qua số điện thoại hay ứng dụng chính thức.</div>
+    </section>
+
+    <section class="page" id="page-check" aria-labelledby="check-title">
+      <div class="page-heading"><p class="eyebrow">Công cụ kiểm tra</p><h1 id="check-title">Kiểm tra link hoặc tin nhắn</h1><p>Dán nội dung bạn nhận được. Không cần đăng nhập. Công cụ chỉ phân tích các dấu hiệu có trong đoạn văn bản.</p></div>
+      <div class="panel">
+        <label for="check-input">Nội dung cần kiểm tra</label>
+        <textarea id="check-input" maxlength="5000" placeholder="Ví dụ: Tin nhắn hoặc đường link bạn muốn kiểm tra..." aria-describedby="local-note input-count"></textarea>
+        <p class="help-text" id="input-count">Tối đa 5.000 ký tự.</p>
+        <div class="notice" id="local-note">🔒 Nội dung chỉ được xử lý trên trình duyệt này. Website không gửi hay lưu nội dung bạn nhập.</div>
+        <div class="button-row">
+          <button class="button" id="check-button" type="button">Kiểm tra ngay</button>
+          <button class="button secondary" id="clear-button" type="button">Xóa nội dung</button>
+        </div>
+        <div class="examples" aria-label="Điền ví dụ để thử">
+          <span class="help-text">Thử ví dụ:</span>
+          <button class="small-button" data-example="safe" type="button">An toàn</button>
+          <button class="small-button" data-example="caution" type="button">Đáng ngờ</button>
+          <button class="small-button" data-example="scam" type="button">Lừa đảo</button>
+        </div>
+        <p class="status-message" id="check-status" role="status" aria-live="polite"></p>
+      </div>
+      <div class="result-shell" id="result-area" aria-live="polite"></div>
+    </section>
+
+    <section class="page" id="page-alerts" aria-labelledby="alerts-title">
+      <div class="page-heading"><p class="eyebrow">Nhận biết thủ đoạn</p><h1 id="alerts-title">Cảnh báo và tra cứu</h1><p>Các tình huống dưới đây là nội dung minh họa để luyện nhận biết. Hãy đọc dấu hiệu và cách xử lý trước khi phản hồi.</p></div>
+      <div class="filters">
+        <div><label for="alert-search">Tìm thủ đoạn</label><input id="alert-search" type="text" placeholder="Nhập từ khóa..." autocomplete="off"></div>
+        <div><label for="alert-category">Lọc theo loại</label><select id="alert-category"><option value="all">Tất cả loại</option></select></div>
+      </div>
+      <p id="alert-count" class="help-text" aria-live="polite"></p>
+      <div class="scam-list" id="scam-list"></div>
+    </section>
+
+    <section class="page" id="page-guide" aria-labelledby="guide-title">
+      <div class="page-heading"><p class="eyebrow">Kiến thức dễ nhớ</p><h1 id="guide-title">Hướng dẫn an toàn trực tuyến</h1><p>Mở từng mục để xem các bước ngắn, dễ làm. Khi chưa chắc chắn, hãy nhờ người bạn tin tưởng kiểm tra cùng.</p></div>
+      <div class="tip-list" id="tip-list"></div>
+    </section>
+
+    <section class="page" id="page-report" aria-labelledby="report-title">
+      <div class="page-heading"><p class="eyebrow">Gửi báo cáo minh họa</p><h1 id="report-title">Báo cáo nội dung đáng ngờ</h1><p>Biểu mẫu này chỉ mô phỏng cách gửi báo cáo. Nội dung sẽ không được lưu hoặc gửi đi.</p></div>
+      <form class="panel form-grid" id="report-form" novalidate>
+        <div class="notice warning"><strong>Không nhập thông tin cá nhân:</strong> không ghi mật khẩu, mã OTP, số thẻ, số căn cước hoặc thông tin riêng tư của người khác.</div>
+        <div><label for="report-type">Loại thủ đoạn</label><select id="report-type" required><option value="">Chọn một loại</option></select></div>
+        <div><label for="report-content">Nội dung nghi ngờ</label><textarea id="report-content" maxlength="1200" placeholder="Mô tả ngắn hoặc dán nội dung đã xóa thông tin riêng tư..."></textarea><p class="help-text">Tối đa 1.200 ký tự.</p></div>
+        <div><label for="report-note">Ghi chú thêm (không bắt buộc)</label><input id="report-note" type="text" maxlength="300" placeholder="Ví dụ: nhận qua tin nhắn điện thoại"></div>
+        <div><button class="button" id="report-submit" type="submit">Gửi báo cáo demo</button><p class="status-message" id="report-status" role="status" aria-live="polite"></p></div>
+      </form>
+    </section>
+
+    <section class="page" id="page-about" aria-labelledby="about-title">
+      <div class="page-heading"><p class="eyebrow">Thông tin dự án</p><h1 id="about-title">Giới thiệu và quyền riêng tư</h1><p>Đây là website demo hỗ trợ luyện tập nhận diện dấu hiệu lừa đảo trực tuyến.</p></div>
+      <div class="panel">
+        <h2>Mục đích</h2><p>Giúp người dùng, nhất là người lớn tuổi, trẻ em và người chưa quen công nghệ, kiểm tra một số dấu hiệu thường gặp và chọn cách xử lý thận trọng.</p>
+        <h2>Dữ liệu của bạn</h2><p>Phần kiểm tra chạy trên trình duyệt. Nội dung nhập vào không được gửi ra ngoài và không được lưu. Biểu mẫu báo cáo chỉ hiện thông báo mô phỏng, chưa có máy chủ hay cơ sở dữ liệu.</p>
+        <h2>Giới hạn của công cụ</h2><p>Điểm số dựa trên một số quy tắc minh họa do nhóm tự soạn. Công cụ không xác minh website theo thời gian thực và có thể bỏ sót thủ đoạn mới hoặc cảnh báo nhầm. Mức “Nguy cơ thấp” không đồng nghĩa an toàn tuyệt đối.</p>
+        <h2>Nguồn tham khảo</h2>
+        <ul class="source-list">
+          <li><a href="https://tinnhiemmang.vn/" target="_blank" rel="noopener noreferrer">Tín nhiệm mạng</a> — tham khảo mô hình tra cứu và cảnh báo.</li>
+          <li><a href="https://ai.chongluadao.vn/" target="_blank" rel="noopener noreferrer">Chống lừa đảo</a> — tham khảo cách trình bày chức năng hỗ trợ người dùng.</li>
+          <li><a href="https://khonggianmang.vn/" target="_blank" rel="noopener noreferrer">Không gian mạng</a> — tham khảo thông tin an toàn mạng.</li>
+          <li><a href="https://archive.ics.uci.edu/dataset/327/phishing+websites" target="_blank" rel="noopener noreferrer">UCI Website Phishing</a> — dữ liệu nghiên cứu về dấu hiệu website lừa đảo.</li>
+          <li><a href="https://archive.ics.uci.edu/dataset/967/phiusiil+phishing+url+dataset" target="_blank" rel="noopener noreferrer">UCI PhiUSIIL Phishing URL</a> — bộ dữ liệu nghiên cứu về đường dẫn lừa đảo.</li>
+        </ul>
+        <p class="help-text">Dữ liệu mẫu và quy tắc chấm điểm trong website này là minh họa do nhóm tự soạn, không đại diện cho các nguồn tham khảo.</p>
+      </div>
+    </section>
+
+    <section class="page" id="page-admin" aria-labelledby="admin-title">
+      <div class="page-heading"><p class="eyebrow">Chức năng tương lai</p><h1 id="admin-title">Quản trị minh họa</h1><p>Màn hình mẫu cho việc duyệt báo cáo trong phiên bản đầy đủ.</p></div>
+      <div class="panel">
+        <div class="admin-banner"><strong>Chỉ minh họa:</strong> Bảng dưới đây dùng dữ liệu giả, không kết nối tới báo cáo người dùng và không có thao tác lưu hoặc duyệt thật.</div>
+        <h2>Báo cáo chờ xem xét</h2>
+        <table class="admin-table"><thead><tr><th scope="col">Loại</th><th scope="col">Nội dung minh họa</th><th scope="col">Trạng thái</th></tr></thead><tbody id="admin-rows"></tbody></table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer"><div class="footer-inner"><span>Website demo giáo dục an toàn số</span><span>Hãy dừng lại và xác minh trước khi gửi tiền hoặc thông tin.</span></div></footer>
+
+  <script>
+    'use strict';
+
+    // MẢNG QUY TẮC: nhóm có thể sửa từ khóa và điểm ở đây.
+    // Những từ khóa được chuẩn hóa bỏ dấu để hỗ trợ tiếng Việt không dấu.
+    const RULES = [
+      { id: 'sensitive', group: 'message', points: 40, patterns: ['ma otp', 'otp', 'mat khau', 'so the', 'cccd', 'can cuoc', 'ma xac thuc', 'thong tin dang nhap'], reason: 'Nội dung xin mã OTP, mật khẩu hoặc thông tin nhạy cảm. Không chia sẻ các thông tin này.' },
+      { id: 'urgent-money', group: 'message', points: 30, patterns: ['chuyen tien gap', 'chuyen khoan ngay', 'chuyen tien ngay', 'tai khoan la', 'nap tien ngay', 'gui tien ngay'], reason: 'Nội dung thúc giục chuyển tiền hoặc chuyển vào tài khoản lạ.' },
+      { id: 'threat', group: 'message', points: 25, patterns: ['khoa tai khoan', 'tai khoan bi khoa', 'bi khoa tai khoan', 'bi phat', 'bi dieu tra', 'bi bat', 'len lam viec', 'xu phat', 'tam khoa'], reason: 'Nội dung đe dọa khóa tài khoản, phạt hoặc điều tra để gây hoảng sợ.' },
+      { id: 'impersonation', group: 'message', points: 20, patterns: ['ngan hang', 'cong an', 'vien kiem sat', 'buu dien', 'dien luc', 'nha mang', 'co quan nha nuoc'], reason: 'Nội dung có dấu hiệu tự nhận là ngân hàng hoặc cơ quan, tổ chức.' },
+      { id: 'prize', group: 'message', points: 20, patterns: ['trung thuong', 'nhan qua', 'hoan tien', 'qua tang bat ngo', 'nhan thuong', 'qua mien phi'], reason: 'Lời mời trúng thưởng, nhận quà hoặc hoàn tiền bất ngờ có thể là mồi nhử.' },
+      { id: 'easy-money', group: 'message', points: 25, patterns: ['viec nhe luong cao', 'loi nhuan chac chan', 'cam ket loi nhuan', 'thu nhap khung', 'khong can kinh nghiem'], reason: 'Lời hứa việc nhẹ lương cao hoặc lợi nhuận chắc chắn cần được kiểm chứng kỹ.' },
+      { id: 'apk-control', group: 'message', points: 30, patterns: ['.apk', 'cai ung dung ngoai', 'cap quyen dieu khien', 'ung dung ho tro', 'chia se man hinh', 'cai app'], reason: 'Yêu cầu cài ứng dụng ngoài kho chính thức hoặc cấp quyền điều khiển thiết bị.' },
+      { id: 'urgent-link', group: 'message', points: 15, patterns: ['ngay lap tuc', 'khan cap', 'trong 24 gio', 'bam vao link', 'truy cap ngay', 'neu khong se'], reason: 'Tin nhắn có đường link kèm lời thúc giục hoặc thời hạn gấp.' },
+      { id: 'shortener', group: 'link', points: 20, patterns: ['bit.ly', 'tinyurl.com', 'cutt.ly', 't.co/', 'is.gd/', 'ow.ly/'], reason: 'Đường link rút gọn che khuất địa chỉ đích thật.' },
+      { id: 'odd-tld', group: 'link', points: 20, patterns: ['.xyz', '.top', '.click', '.icu', '.live'], reason: 'Tên miền có phần đuôi thường bị lợi dụng trong các trang giả mạo.' },
+      { id: 'ip-host', group: 'link', points: 30, patterns: [], reason: 'Đường link dùng địa chỉ số thay cho tên miền quen thuộc.' },
+      { id: 'link-at-hyphen', group: 'link', points: 15, patterns: [], reason: 'Địa chỉ có ký tự @, nhiều dấu gạch ngang hoặc nhiều tầng tên miền.' },
+      { id: 'lookalike', group: 'link', points: 25, patterns: [], reason: 'Tên miền có thể giả mạo thương hiệu bằng ký tự giống nhau hoặc cách viết bất thường.' },
+      { id: 'no-https', group: 'link', points: 10, patterns: [], reason: 'Đường link không dùng HTTPS. Đây không phải bằng chứng chắc chắn là lừa đảo, nhưng cần thận trọng.' },
+      { id: 'long-link', group: 'link', points: 10, patterns: [], reason: 'Đường link dài bất thường, có thể che giấu nhiều thông tin hoặc chuyển hướng.' }
+    ];
+
+    // DỮ LIỆU MẪU: 13 thủ đoạn viết riêng cho bản demo.
+    const SCAMS = [
+      { title: 'Giả danh ngân hàng để lấy mã OTP', category: 'Giả danh ngân hàng/cơ quan', description: 'Kẻ gian báo tài khoản có vấn đề rồi yêu cầu bấm link và nhập mã xác thực.', signs: 'Tin nhắn tạo cảm giác khẩn cấp, trang đăng nhập có tên miền lạ.', action: 'Không nhập mã. Gọi ngân hàng bằng số trên thẻ hoặc trong ứng dụng chính thức.' },
+      { title: 'Giả danh công an gọi điện', category: 'Giả danh ngân hàng/cơ quan', description: 'Người gọi nói bạn liên quan đến vụ việc và yêu cầu giữ bí mật, chuyển tiền để xác minh.', signs: 'Đe dọa bắt giữ, yêu cầu chuyển tiền hoặc cài ứng dụng lạ.', action: 'Ngắt cuộc gọi, không chuyển tiền và tự liên hệ cơ quan qua kênh công khai.' },
+      { title: 'Giả danh bưu điện thu phí', category: 'Giả danh ngân hàng/cơ quan', description: 'Tin nhắn báo có bưu phẩm bị giữ và yêu cầu thanh toán khoản phí nhỏ qua link.', signs: 'Link lạ, yêu cầu nhập thông tin thẻ để nhận hàng.', action: 'Kiểm tra mã vận đơn trong ứng dụng hoặc website chính thức của đơn vị giao hàng.' },
+      { title: 'Thông báo trúng thưởng bất ngờ', category: 'Trúng thưởng', description: 'Bạn được báo trúng quà dù không tham gia chương trình nào.', signs: 'Yêu cầu đóng phí nhận quà hoặc gửi thông tin ngân hàng.', action: 'Không thanh toán phí trước. Kiểm tra chương trình trên trang chính thức.' },
+      { title: 'Việc làm online phải nạp tiền', category: 'Việc làm online', description: 'Công việc đơn giản hứa trả hoa hồng cao sau khi bạn nạp tiền làm nhiệm vụ.', signs: 'Yêu cầu ứng tiền, tăng mức nạp hoặc mời thêm người.', action: 'Dừng chuyển tiền. Tra cứu đơn vị tuyển dụng độc lập và hỏi người tin cậy.' },
+      { title: 'Lời mời đầu tư lợi nhuận chắc chắn', category: 'Đầu tư', description: 'Nhóm chat hoặc người lạ hứa lợi nhuận cao, đều đặn và không có rủi ro.', signs: 'Cam kết lãi chắc chắn, gây áp lực nạp thêm hoặc không rút được tiền.', action: 'Không gửi tiền theo lời mời. Tìm hiểu giấy phép và hỏi chuyên gia độc lập.' },
+      { title: 'Mạo danh nhân viên hỗ trợ sàn đầu tư', category: 'Đầu tư', description: 'Người tự xưng là nhân viên yêu cầu chia sẻ màn hình hoặc cấp quyền điều khiển thiết bị.', signs: 'Yêu cầu cài file APK hoặc phần mềm từ đường link gửi riêng.', action: 'Không cài ứng dụng. Gỡ quyền hỗ trợ từ xa nếu đã cấp và đổi mật khẩu trên thiết bị an toàn.' },
+      { title: 'Cửa hàng online yêu cầu chuyển khoản riêng', category: 'Mua bán online', description: 'Người bán yêu cầu chuyển tiền ngoài nền tảng để được giảm giá sâu.', signs: 'Giá thấp bất thường, tài khoản nhận tiền không liên quan cửa hàng.', action: 'Ưu tiên thanh toán trong nền tảng có bảo vệ người mua; không gửi thêm phí lạ.' },
+      { title: 'Giả nhân viên giao hàng gửi mã QR', category: 'Mã QR', description: 'Người lạ gửi mã QR để nhận hàng, hoàn phí hoặc xác nhận địa chỉ.', signs: 'Mã QR dẫn tới trang yêu cầu đăng nhập hoặc nhập thông tin thanh toán.', action: 'Không quét mã từ nguồn lạ. Tự mở ứng dụng giao hàng để kiểm tra đơn.' },
+      { title: 'Mã QR giả tại nơi công cộng', category: 'Mã QR', description: 'Mã QR dán đè lên mã thanh toán hoặc menu hợp pháp.', signs: 'Tên người nhận sau khi quét không khớp với cửa hàng.', action: 'Kiểm tra người nhận và số tiền trước khi xác nhận thanh toán.' },
+      { title: 'Lừa đảo tình cảm xin tiền', category: 'Tình cảm', description: 'Người quen qua mạng xây dựng lòng tin rồi kể chuyện khẩn cấp để mượn tiền.', signs: 'Tránh gọi video, câu chuyện luôn gấp và yêu cầu giữ bí mật.', action: 'Không chuyển tiền cho người chưa gặp trực tiếp; xác minh qua người thân hoặc kênh khác.' },
+      { title: 'Link nhận hoàn tiền giả', category: 'Mua bán online', description: 'Tin nhắn báo đơn hàng được hoàn tiền và yêu cầu đăng nhập qua link.', signs: 'Địa chỉ web gần giống tên cửa hàng nhưng có thêm chữ hoặc số lạ.', action: 'Không đăng nhập qua link. Mở ứng dụng mua sắm bằng biểu tượng quen thuộc.' },
+      { title: 'Giả danh nhà mạng khóa SIM', category: 'Giả danh ngân hàng/cơ quan', description: 'Người gọi dọa khóa SIM rồi xin mã xác thực hoặc thông tin cá nhân.', signs: 'Yêu cầu đọc mã OTP để “xác minh chính chủ”.', action: 'Không đọc mã. Gọi tổng đài nhà mạng từ nguồn chính thức để xác minh.' }
+    ];
+
+    // 12 ví dụ thử: 4 an toàn, 4 cần thận trọng và 4 nguy cơ cao.
+    const EXAMPLES = {
+      safe: 'Lịch học tuần này đã được đăng trên cổng thông tin của trường. Bạn có thể tự mở ứng dụng quen thuộc để xem lịch.',
+      caution: 'Cơ hội việc nhẹ lương cao, hứa lợi nhuận chắc chắn. Hãy tìm hiểu đơn vị trước khi tham gia.',
+      scam: 'Tai khoan ngan hang bi khoa. Bam vao https://vn-bank-xacthuc.example/login trong 24 gio va gui ma OTP de mo lai ngay.',
+      all: [
+        { kind: 'An toàn', text: 'Thư viện thông báo giờ mở cửa tuần này. Vui lòng xem bảng tin tại quầy thư viện.' },
+        { kind: 'An toàn', text: 'Bạn có bài tập mới trong lớp học. Hãy tự mở ứng dụng học tập quen thuộc để xem.' },
+        { kind: 'An toàn', text: 'Hóa đơn điện tháng này đã có trên ứng dụng khách hàng mà bạn thường dùng.' },
+        { kind: 'An toàn', text: 'Cuộc hẹn của bạn là 9 giờ sáng thứ Hai. Nếu cần đổi lịch, hãy gọi số đã lưu.' },
+        { kind: 'Đáng ngờ', text: 'Cơ hội việc nhẹ lương cao. Hãy tìm hiểu kỹ công ty trước khi ứng tuyển.' },
+        { kind: 'Đáng ngờ', text: 'Lời mời đầu tư hứa lợi nhuận chắc chắn. Hãy tự xác minh thông tin trước khi tham gia.' },
+        { kind: 'Đáng ngờ', text: 'Mời xem thông tin tại http://kiem-tra-thong-tin.top/ho-tro' },
+        { kind: 'Đáng ngờ', text: 'Kiểm tra thông báo tại https://vietcombank-xacminh.example/ho-tro' },
+        { kind: 'Lừa đảo', text: 'Cong an yeu cau chuyen tien ngay de xac minh, neu khong ban se bi bat. Tai khoan: 123456.' },
+        { kind: 'Lừa đảo', text: 'Chuc mung ban trung thuong. Bam https://qua-tang-nhanngay.example trong 24 gio va nhap so the de nhan qua.' },
+        { kind: 'Lừa đảo', text: 'Viec nhe luong cao, loi nhuan chac chan. Cai file viec-lam.apk va nap tien ngay de mo nhiem vu.' },
+        { kind: 'Lừa đảo', text: 'Tai khoan bi khoa. Gui ma OTP va mat khau tai https://vietcombank-xacthuc.example/login ngay lap tuc.' }
+      ]
+    };
+
+    // 7 bài hướng dẫn ngắn, viết theo tình huống thường gặp.
+    const TIPS = [
+      { title: '1. Nhận biết dấu hiệu lừa đảo', body: ['Cảnh giác khi có lời thúc giục, đe dọa hoặc hứa hẹn lợi ích quá tốt.', 'Không tin chỉ vì người gửi biết tên, ảnh đại diện hay một vài thông tin của bạn.', 'Tạm dừng và xác minh bằng cách tự tìm số điện thoại hoặc ứng dụng chính thức.'] },
+      { title: '2. Không chia sẻ mã OTP', body: ['Mã OTP là mã xác nhận riêng của bạn. Không đọc hoặc gửi mã này cho bất kỳ ai.', 'Nhân viên hỗ trợ thật không cần bạn gửi mật khẩu hay mã xác thực qua tin nhắn.'] },
+      { title: '3. Bảo vệ tài khoản', body: ['Dùng mật khẩu riêng cho từng tài khoản quan trọng.', 'Bật xác thực hai lớp nếu dịch vụ có hỗ trợ.', 'Không đăng nhập trên thiết bị công cộng và nhớ đăng xuất khi dùng xong.'] },
+      { title: '4. Kiểm tra tên miền', body: ['Đọc kỹ từng ký tự trong địa chỉ; chữ o có thể bị thay bằng số 0, chữ l bằng số 1.', 'Tên miền kết thúc bằng .vn không tự động chứng minh website thuộc cơ quan nhà nước.', 'Nếu phân vân, tự gõ địa chỉ quen thuộc hoặc mở ứng dụng chính thức.'] },
+      { title: '5. Nếu đã bấm vào link lạ', body: ['Đóng trang và không tải ứng dụng hay tệp được yêu cầu.', 'Nếu đã nhập mật khẩu, đổi mật khẩu từ thiết bị an toàn và đăng xuất các phiên lạ.', 'Nếu đã cài ứng dụng hoặc cấp quyền điều khiển, ngắt kết nối mạng và nhờ người có chuyên môn kiểm tra.'] },
+      { title: '6. Nếu đã chia sẻ thông tin hoặc chuyển tiền', body: ['Gọi ngân hàng hoặc đơn vị cung cấp dịch vụ qua số chính thức càng sớm càng tốt.', 'Đề nghị khóa hoặc bảo vệ tài khoản, thẻ hay SIM liên quan.', 'Lưu lại tin nhắn, số điện thoại, biên lai và báo cho người thân hoặc cơ quan chức năng.'] },
+      { title: '7. Nhờ người thân và báo sự việc', body: ['Nếu chưa chắc chắn, hãy dừng giao dịch và gọi cho người thân qua số bạn đã lưu.', 'Không dùng số điện thoại hoặc đường link do người đáng ngờ gửi để xác minh.', 'Khi báo cáo, chia sẻ bằng chứng cần thiết nhưng che thông tin riêng tư không liên quan.'] }
+    ];
+
+    const CATEGORY_OPTIONS = ['Giả danh ngân hàng/cơ quan', 'Trúng thưởng', 'Việc làm online', 'Đầu tư', 'Mua bán online', 'Tình cảm', 'Mã QR'];
+    const $ = (selector, root = document) => root.querySelector(selector);
+    const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+    const normalize = (value) => String(value).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd');
+    const resultArea = $('#result-area');
+    let lastReportAt = 0;
+
+    function goTo(pageName) {
+      const target = document.getElementById(`page-${pageName}`);
+      if (!target) return;
+      $$('.page').forEach(page => page.classList.toggle('active', page === target));
+      $$('.nav-link').forEach(link => {
+        if (link.dataset.page === pageName) link.setAttribute('aria-current', 'page');
+        else link.removeAttribute('aria-current');
+      });
+      history.replaceState(null, '', `#${pageName}`);
+      $('#main').focus({ preventScroll: true });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function getUrls(text) {
+      return String(text).match(/(?:https?:\/\/|www\.)[^\s<>{}\[\]"']+|\b(?:[a-z0-9-]+\.)+(?:com|net|org|vn|xyz|top|click|icu|live|example)(?:\/[^\s<>{}\[\]"']*)?/gi) || [];
+    }
+
+    function analyzeUrl(rawUrl) {
+      const normalizedUrl = rawUrl.replace(/[),.!?;:]+$/g, '');
+      let parsed;
+      try {
+        const usable = /^https?:\/\//i.test(normalizedUrl) ? normalizedUrl : `http://${normalizedUrl.replace(/^www\./i, 'www.')}`;
+        parsed = new URL(usable);
+      } catch (_) {
+        return { score: 0, findings: [] };
+      }
+      const host = parsed.hostname.toLowerCase();
+      const normalized = normalize(normalizedUrl);
+      const findings = [];
+      const add = id => {
+        const rule = RULES.find(item => item.id === id);
+        if (rule && !findings.some(item => item.id === id)) findings.push({ id, points: rule.points, reason: rule.reason });
+      };
+      if (RULES.find(r => r.id === 'shortener').patterns.some(p => normalized.includes(p))) add('shortener');
+      if (RULES.find(r => r.id === 'odd-tld').patterns.some(p => host.endsWith(p))) add('odd-tld');
+      if (/^(?:\d{1,3}\.){3}\d{1,3}$/.test(host) || /^\[[0-9a-f:]+\]$/i.test(host)) add('ip-host');
+      const labels = host.split('.');
+      const hyphens = (host.match(/-/g) || []).length;
+      if (normalizedUrl.includes('@') || hyphens >= 3 || labels.length >= 5) add('link-at-hyphen');
+      const brandWords = ['vietcombank', 'techcombank', 'bidv', 'agribank', 'vietinbank', 'congan', 'buu-dien', 'dienluc'];
+      const lookalikeChars = /[0-9]/.test(host) && brandWords.some(word => host.includes(word.replace(/[^a-z]/g, '')));
+      const hasBrandWithOddHost = brandWords.some(word => host.includes(word) && (hyphens >= 1 || labels.length >= 4 || /[0-9]/.test(host))) ||
+        /(?:bank|nganhang)/.test(host) && (hyphens >= 1 || labels.length >= 4 || /[0-9]/.test(host));
+      if (lookalikeChars || hasBrandWithOddHost) add('lookalike');
+      if (!/^https:\/\//i.test(normalizedUrl)) add('no-https');
+      if (normalizedUrl.length > 90) add('long-link');
+      return { score: findings.reduce((sum, item) => sum + item.points, 0), findings };
+    }
+
+    // HÀM CHẤM ĐIỂM: mỗi quy tắc chỉ cộng một lần; tổng điểm tối đa 100.
+    function analyzeText(text) {
+      const original = String(text).trim();
+      const plain = normalize(original);
+      const findings = [];
+      RULES.filter(rule => rule.group === 'message').forEach(rule => {
+        if (rule.patterns.some(pattern => plain.includes(pattern))) {
+          findings.push({ id: rule.id, points: rule.points, reason: rule.reason });
+        }
+      });
+      getUrls(original).forEach(url => {
+        const urlResult = analyzeUrl(url);
+        urlResult.findings.forEach(finding => {
+          if (!findings.some(item => item.id === finding.id)) findings.push(finding);
+        });
+      });
+      const score = Math.min(100, findings.reduce((sum, item) => sum + item.points, 0));
+      const level = score >= 60 ? 'high' : score >= 25 ? 'caution' : 'low';
+      return { score, level, findings };
+    }
+
+    function addText(parent, tag, text, className) {
+      const node = document.createElement(tag);
+      if (className) node.className = className;
+      node.textContent = text;
+      parent.appendChild(node);
+      return node;
+    }
+
+    function recommendations(level) {
+      if (level === 'high') return [
+        'Dừng lại. Không nhấn link, không chuyển tiền và không gửi mã OTP hay mật khẩu.',
+        'Tự gọi ngân hàng hoặc tổ chức liên quan bằng số trên thẻ, ứng dụng hay giấy tờ chính thức.',
+        'Nếu đã chia sẻ thông tin hoặc chuyển tiền, liên hệ ngân hàng ngay và báo cho người thân.'
+      ];
+      if (level === 'caution') return [
+        'Chưa cung cấp thông tin hoặc thanh toán cho đến khi kiểm tra xong.',
+        'Tự mở ứng dụng hoặc nhập địa chỉ chính thức thay vì dùng link trong tin nhắn.',
+        'Nhờ người bạn tin tưởng cùng xem nếu còn băn khoăn.'
+      ];
+      return [
+        'Chưa phát hiện dấu hiệu rõ trong đoạn bạn gửi; điều này không bảo đảm nội dung an toàn.',
+        'Không chia sẻ OTP, mật khẩu hay thông tin thẻ qua tin nhắn hoặc cuộc gọi.',
+        'Nếu liên quan đến tiền hoặc tài khoản, hãy xác minh qua kênh chính thức.'
+      ];
+    }
+
+    function renderResult(result) {
+      resultArea.replaceChildren();
+      const labels = { low: ['🟢', 'Nguy cơ thấp', 'low'], caution: ['🟡', 'Cần thận trọng', 'caution'], high: ['🔴', 'Nguy cơ cao', 'high'] };
+      const [icon, label, style] = labels[result.level];
+      const card = document.createElement('section');
+      card.className = `risk-card ${style}`;
+      card.setAttribute('aria-labelledby', 'risk-title');
+      const top = document.createElement('div'); top.className = 'risk-top';
+      addText(top, 'span', icon, 'risk-icon').setAttribute('aria-hidden', 'true');
+      const titleWrap = document.createElement('div');
+      addText(titleWrap, 'h2', label, 'risk-title').id = 'risk-title';
+      addText(titleWrap, 'p', `Điểm tham khảo: ${result.score}/100`,'score');
+      top.appendChild(titleWrap); card.appendChild(top);
+      const columns = document.createElement('div'); columns.className = 'result-columns';
+      const signs = document.createElement('div');
+      addText(signs, 'h3', 'Dấu hiệu đáng ngờ đã phát hiện');
+      if (result.findings.length) {
+        const ul = document.createElement('ul'); ul.className = 'result-list';
+        result.findings.forEach(item => addText(ul, 'li', `${item.reason} (+${item.points} điểm)`));
+        signs.appendChild(ul);
+      } else addText(signs, 'p', 'Chưa thấy dấu hiệu trong danh sách quy tắc mẫu.', 'empty-state');
+      const actions = document.createElement('div');
+      addText(actions, 'h3', 'Bạn nên làm gì');
+      const advice = document.createElement('ul'); advice.className = 'result-list';
+      recommendations(result.level).forEach(item => addText(advice, 'li', item));
+      actions.appendChild(advice); columns.append(signs, actions); card.appendChild(columns);
+      const tools = document.createElement('div'); tools.className = 'button-row';
+      if ('speechSynthesis' in window && 'SpeechSynthesisUtterance' in window) {
+        const listen = document.createElement('button'); listen.type = 'button'; listen.className = 'button secondary'; listen.textContent = '🔊 Nghe kết quả';
+        listen.addEventListener('click', () => speakResult(label, result)); tools.appendChild(listen);
+      }
+      const repeat = document.createElement('button'); repeat.type = 'button'; repeat.className = 'button secondary'; repeat.textContent = 'Kiểm tra nội dung khác'; repeat.addEventListener('click', () => { $('#check-input').focus(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+      tools.appendChild(repeat); card.appendChild(tools);
+      addText(card, 'p', 'Kết quả chỉ hỗ trợ đánh giá nguy cơ, không đảm bảo phát hiện mọi hình thức lừa đảo.', 'help-text');
+      resultArea.appendChild(card);
+    }
+
+    function speakResult(label, result) {
+      const text = `${label}. Điểm tham khảo ${result.score} trên 100. ` +
+        (result.findings.length ? result.findings.map(item => item.reason).join(' ') : 'Chưa phát hiện dấu hiệu rõ trong danh sách mẫu.') +
+        ' Hãy xác minh qua kênh chính thức. Kết quả không đảm bảo phát hiện mọi hình thức lừa đảo.';
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'vi-VN';
+      const voices = window.speechSynthesis.getVoices();
+      const vietnamese = voices.find(voice => voice.lang.toLowerCase().startsWith('vi'));
+      if (vietnamese) utterance.voice = vietnamese;
+      window.speechSynthesis.cancel(); window.speechSynthesis.speak(utterance);
+    }
+
+    function fillCategorySelect(select) {
+      CATEGORY_OPTIONS.forEach(category => {
+        const option = document.createElement('option'); option.value = category; option.textContent = category; select.appendChild(option);
+      });
+    }
+
+    function renderScams() {
+      const query = normalize($('#alert-search').value.trim());
+      const category = $('#alert-category').value;
+      const matches = SCAMS.filter(item => {
+        const haystack = normalize(`${item.title} ${item.category} ${item.description} ${item.signs} ${item.action}`);
+        return (category === 'all' || item.category === category) && (!query || haystack.includes(query));
+      });
+      const list = $('#scam-list'); list.replaceChildren();
+      $('#alert-count').textContent = `Đang hiển thị ${matches.length} trên ${SCAMS.length} thủ đoạn minh họa.`;
+      if (!matches.length) { addText(list, 'p', 'Không tìm thấy nội dung phù hợp. Thử từ khóa khác nhé.', 'empty-state'); return; }
+      matches.forEach(item => {
+        const card = document.createElement('article'); card.className = 'scam-card';
+        addText(card, 'span', item.category, 'tag'); addText(card, 'h2', item.title);
+        addText(card, 'p', item.description);
+        const signs = document.createElement('p'); const strong1 = document.createElement('strong'); strong1.textContent = 'Dấu hiệu: '; signs.append(strong1, document.createTextNode(item.signs)); card.appendChild(signs);
+        const action = document.createElement('p'); const strong2 = document.createElement('strong'); strong2.textContent = 'Cách xử lý: '; action.append(strong2, document.createTextNode(item.action)); card.appendChild(action);
+        list.appendChild(card);
+      });
+    }
+
+    function renderTips() {
+      const list = $('#tip-list');
+      TIPS.forEach((tip, index) => {
+        const details = document.createElement('details'); details.className = 'tip';
+        if (index === 0) details.open = true;
+        const summary = document.createElement('summary'); summary.textContent = tip.title; details.appendChild(summary);
+        const content = document.createElement('div'); content.className = 'tip-content';
+        const ul = document.createElement('ul'); tip.body.forEach(line => addText(ul, 'li', line)); content.appendChild(ul); details.appendChild(content); list.appendChild(details);
+      });
+    }
+
+    function renderAdmin() {
+      const samples = [
+        ['Giả danh ngân hàng', 'Mẫu: tin nhắn yêu cầu cập nhật tài khoản qua link giả.', 'Chờ xem xét'],
+        ['Mã QR', 'Mẫu: mã thanh toán có tên người nhận không khớp cửa hàng.', 'Chờ xem xét'],
+        ['Việc làm online', 'Mẫu: yêu cầu nạp tiền để mở nhiệm vụ.', 'Đã ẩn thông tin cá nhân']
+      ];
+      const rows = $('#admin-rows');
+      samples.forEach(sample => { const tr = document.createElement('tr'); sample.forEach(cell => addText(tr, 'td', cell)); rows.appendChild(tr); });
+    }
+
+    $$('.nav-link').forEach(button => button.addEventListener('click', () => goTo(button.dataset.page)));
+    $$('[data-go]').forEach(button => button.addEventListener('click', () => goTo(button.dataset.go)));
+    $('#check-input').addEventListener('input', event => { $('#input-count').textContent = `${event.target.value.length}/5.000 ký tự`; });
+    $('#check-button').addEventListener('click', () => {
+      const text = $('#check-input').value.trim();
+      if (!text) { $('#check-status').textContent = 'Bạn hãy dán một đường link hoặc tin nhắn trước nhé.'; resultArea.replaceChildren(); $('#check-input').focus(); return; }
+      $('#check-status').textContent = '';
+      renderResult(analyzeText(text));
+      resultArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    $('#clear-button').addEventListener('click', () => { $('#check-input').value = ''; $('#input-count').textContent = '0/5.000 ký tự'; $('#check-status').textContent = 'Đã xóa nội dung trên thiết bị này.'; resultArea.replaceChildren(); $('#check-input').focus(); });
+    const exampleIndexes = { safe: 0, caution: 0, scam: 0 };
+    $$('.examples [data-example]').forEach(button => button.addEventListener('click', () => {
+      const kind = button.dataset.example;
+      const label = { safe: 'An toàn', caution: 'Đáng ngờ', scam: 'Lừa đảo' }[kind];
+      const samples = EXAMPLES.all.filter(sample => sample.kind === label);
+      const index = exampleIndexes[kind] % samples.length;
+      $('#check-input').value = samples[index].text;
+      exampleIndexes[kind] += 1;
+      $('#input-count').textContent = `${$('#check-input').value.length}/5.000 ký tự`;
+      $('#check-status').textContent = `Đã điền mẫu ${label.toLowerCase()} ${index + 1}/${samples.length}. Bấm “Kiểm tra ngay” để xem kết quả.`;
+      $('#check-input').focus();
+    }));
+    $('#alert-search').addEventListener('input', renderScams);
+    $('#alert-category').addEventListener('change', renderScams);
+    fillCategorySelect($('#alert-category')); fillCategorySelect($('#report-type'));
+
+    $('#report-form').addEventListener('submit', event => {
+      event.preventDefault();
+      const type = $('#report-type').value;
+      const content = $('#report-content').value.trim();
+      const note = $('#report-note').value.trim();
+      const status = $('#report-status'); status.className = 'status-message'; status.textContent = '';
+      if (!type || !content) { status.classList.add('error'); status.textContent = 'Hãy chọn loại thủ đoạn và nhập nội dung mô tả.'; return; }
+      if (content.length > 1200 || note.length > 300) { status.classList.add('error'); status.textContent = 'Nội dung vượt quá giới hạn ký tự.'; return; }
+      const remaining = 30000 - (Date.now() - lastReportAt);
+      if (remaining > 0) { status.classList.add('error'); status.textContent = `Bạn hãy chờ ${Math.ceil(remaining / 1000)} giây rồi thử lại.`; return; }
+      lastReportAt = Date.now();
+      status.classList.add('success'); status.textContent = 'Đã ghi nhận (bản demo, chưa lưu thật).';
+      $('#report-form').reset();
+    });
+
+    let fontSize = 18;
+    $('#font-up').addEventListener('click', () => { fontSize = Math.min(22, fontSize + 1); document.documentElement.style.setProperty('--base-font', `${fontSize}px`); });
+    $('#font-down').addEventListener('click', () => { fontSize = Math.max(16, fontSize - 1); document.documentElement.style.setProperty('--base-font', `${fontSize}px`); });
+    $('#theme-toggle').addEventListener('click', event => {
+      const dark = document.documentElement.dataset.theme !== 'dark';
+      document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+      event.currentTarget.setAttribute('aria-label', dark ? 'Bật chế độ sáng' : 'Bật chế độ tối');
+    });
+
+    renderScams(); renderTips(); renderAdmin();
+    const initialPage = location.hash.replace('#', '');
+    if (initialPage && document.getElementById(`page-${initialPage}`)) goTo(initialPage);
+  </script>
+</body>
+</html>
+
